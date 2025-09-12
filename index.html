@@ -906,6 +906,8 @@ img, a {
     </div>
     
 
+    
+
     <!-- Section: Konfigurasi dan Pengujian Gateway dengan Check-Gateway -->
     <div class="section fade-in">
         <h2 class="section-title">2. KONFIGURASI DAN PENGUJIAN GATEWAY DENGAN CHECK-GATEWAY</h2>
@@ -996,6 +998,119 @@ img, a {
     </div>
     
     
+    <!-- Section: Analisis Jaringan dengan Traceroute di MikroTik -->
+<div class="section fade-in">
+    <h2 class="section-title">3. ANALISIS JARINGAN DENGAN TRACEROUTE DI MIKROTIK</h2>
+
+    <div class="image-container">
+        <img src="no (2).png" alt="Hasil Traceroute di MikroTik RouterOS">
+        <div class="image-caption">Tampilan hasil traceroute dari MikroTik RouterOS ke tujuan eksternal.</div>
+    </div>
+
+    <h3 class="subsection-title">Pengertian dan Fungsi Traceroute</h3>
+    <p>Dari sumber RouterOS Manual (2024), Traceroute adalah alat diagnostik jaringan yang digunakan untuk melacak rute yang dilalui paket dari sumber ke tujuan. Alat ini mengungkapkan setiap hop (perangkat jaringan perantara) yang dilalui paket, memberikan wawasan tentang topologi jaringan dan membantu mengidentifikasi titik kegagalan atau kemacetan.</p>
+
+    <p>Menurut NetworkLessons (2023), Traceroute bekerja dengan memanfaatkan nilai TTL (Time to Live) dalam header IP. Dengan mengirimkan serangkaian paket dengan TTL yang meningkat secara bertahap, setiap router di sepanjang jalur akan mengembalikan pesan ICMP "Time Exceeded" ketika TTL habis, sehingga mengungkapkan identitasnya.</p>
+
+    <div class="tech-alert">
+        <p>Traceroute sangat berguna ketika ping gagal atau menunjukkan latency tinggi. Dengan traceroute, Anda dapat menentukan secara tepat di hop mana masalah terjadi - apakah di jaringan lokal, penyedia layanan, atau di tujuan.</p>
+    </div>
+
+    <h3 class="subsection-title">Menggunakan Perintah Traceroute di CLI MikroTik</h3>
+    <p>Berikut adalah sintaksis dasar penggunaan traceroute di MikroTik RouterOS:</p>
+
+    <div class="code-terminal">
+        <div class="code-line"><span class="keyword">/tool traceroute</span> [alamat_ip_atau_domain]</div>
+        <div class="code-line comment"># Contoh sederhana traceroute ke google DNS</div>
+        <div class="code-line"><span class="keyword">/tool traceroute</span> 8.8.8.8</div>
+    </div>
+
+    <p>Traceroute di MikroTik menyediakan berbagai parameter untuk pengujian yang lebih spesifik:</p>
+
+    <div class="code-terminal">
+        <div class="code-line"><span class="keyword">/tool traceroute</span> address=<span class="string">8.8.8.8</span> count=<span class="string">3</span> timeout=<span class="string">1s</span> max-hops=<span class="string">30</span></div>
+        <div class="code-line comment"># Traceroute dengan 3 percobaan per hop, timeout 1 detik, maksimal 30 hop</div>
+        <div class="code-line"><span class="keyword">/tool traceroute</span> address=<span class="string">www.google.com</span> src-address=<span class="string">192.168.1.10</span> port=<span class="string">33434</span></div>
+        <div class="code-line comment"># Traceroute dengan menentukan alamat sumber dan port awal</div>
+        <div class="code-line"><span class="keyword">/tool traceroute</span> address=<span class="string">10.0.0.1</span> use-icmp=<span class="string">yes</span></div>
+        <div class="code-line comment"># Menggunakan ICMP bukan UDP (beberapa firewall memblokir UDP)</div>
+    </div>
+
+    <p>Contoh hasil output Traceroute di MikroTik RouterOS:</p>
+
+    <div class="code-terminal">
+        <div class="code-line"><span class="keyword">[admin@MikroTik]</span> > /tool traceroute 8.8.8.8</div>
+        <div class="code-line"> # ADDRESS                           LOSS SENT    LAST     AVG    BEST   WORST STD-DEV STATUS</div>
+        <div class="code-line"> 1 192.168.1.1                        0%   3    0.8ms    0.8    0.7    0.9     0.1</div>
+        <div class="code-line"> 2 10.10.10.1                        0%   3    5.2ms    5.4    5.2    5.7     0.3</div>
+        <div class="code-line"> 3 172.16.32.18                      0%   3   12.5ms   12.6   12.5   12.8     0.2</div>
+        <div class="code-line"> 4 74.125.242.129                    0%   3   15.2ms   15.3   15.2   15.5     0.2</div>
+        <div class="code-line"> 5 216.239.62.237                    0%   3   16.8ms   16.9   16.8   17.1     0.2</div>
+        <div class="code-line"> 6 8.8.8.8                           0%   3   17.5ms   17.6   17.5   17.8     0.2</div>
+        <div class="code-line">    sent=18 received=18 packet-loss=0% min-rtt=0.7ms avg-rtt=11.4ms max-rtt=17.8ms</div>
+    </div>
+
+    <h3 class="subsection-title">Interpretasi Hasil Traceroute</h3>
+    <p>Memahami output traceroute sangat penting untuk diagnosis jaringan yang efektif:</p>
+
+    <ul class="feature-list">
+        <li><strong>LOSS (%)</strong>: Persentase paket yang hilang pada hop tertentu</li>
+        <li><strong>SENT</strong>: Jumlah paket yang dikirim ke hop tersebut</li>
+        <li><strong>LAST/AVG/BEST/WORST</strong> (ms): Latency dalam milidetik</li>
+        <li><strong>STD-DEV</strong>: Standar deviasi latency (konsistensi respons)</li>
+        <li><strong>Status</strong>: Status hop (biasanya kosong jika normal)</li>
+    </ul>
+
+    <p>Beberapa pola umum dalam hasil traceroute:</p>
+
+    <div class="code-terminal">
+        <div class="code-line comment"># Hop dengan timeout (***) menunjukkan kemungkinan masalah</div>
+        <div class="code-line"> 5 ***                                 100%  3    0.0ms    0.0    0.0    0.0     0.0</div>
+        <div class="code-line comment"># Peningkatan latency yang signifikan antar hop</div>
+        <div class="code-line"> 4 74.125.242.129                      0%   3   15.2ms   15.3   15.2   15.5     0.2</div>
+        <div class="code-line"> 5 216.239.62.237                      0%   3  125.8ms  126.9  125.8  127.1     0.2</div>
+        <div class="code-line comment"># Host yang tidak merespons tetapi rute tetap berlanjut</div>
+        <div class="code-line"> 7 172.16.32.18                      100%   3    0.0ms    0.0    0.0    0.0     0.0</div>
+        <div class="code-line"> 8 74.125.242.129                      0%   3   15.2ms   15.3   15.2   15.5     0.2</div>
+    </div>
+
+    <h3 class="subsection-title">Kasus Penggunaan Traceroute untuk Pemecahan Masalah</h3>
+    <p>Traceroute sangat efektif untuk berbagai skenario troubleshooting:</p>
+
+    <div class="code-terminal">
+        <div class="code-line comment"># 1. Melacak rute ke tujuan tertentu</div>
+        <div class="code-line"><span class="keyword">/tool traceroute</span> address=<span class="string">www.github.com</span></div>
+        <div class="code-line comment"># 2. Mengidentifikasi di hop mana latency meningkat</div>
+        <div class="code-line"><span class="keyword">/tool traceroute</span> address=<span class="string">8.8.8.8</span> count=<span class="string">5</span></div>
+        <div class="code-line comment"># 3. Memeriksa apakah rute asimetris terjadi</div>
+        <div class="code-line"><span class="keyword">/tool traceroute</span> address=<span class="string">192.168.100.1</span> src-address=<span class="string">192.168.1.1</span></div>
+        <div class="code-line comment"># 4. Menguji dengan protokol berbeda (ICMP vs UDP)</div>
+        <div class="code-line"><span class="keyword">/tool traceroute</span> address=<span class="string">10.0.0.5</span> use-icmp=<span class="string">yes</span></div>
+        <div class="code-line"><span class="keyword">/tool traceroute</span> address=<span class="string">10.0.0.5</span> use-icmp=<span class="string">no</span></div>
+    </div>
+
+    <div class="tech-alert">
+        <p>Beberapa perangkat jaringan mungkin dikonfigurasi untuk tidak merespons permintaan traceroute karena alasan keamanan. Ini ditunjukkan dengan tanda asteris (***) dalam hasil. Jangan langsung berasumsi ada masalah ketika melihat ini - lanjutkan ke hop berikutnya untuk melihat apakah paket masih bisa mencapai tujuan.</p>
+    </div>
+
+    <h3 class="subsection-title">Advanced Traceroute Techniques</h3>
+    <p>Untuk analisis jaringan yang lebih mendalam, pertimbangkan teknik-teknik canggih berikut:</p>
+
+    <div class="code-terminal">
+        <div class="code-line comment"># Traceroute dengan ukuran paket berbeda untuk menguji MTU</div>
+        <div class="code-line"><span class="keyword">/tool traceroute</span> address=<span class="string">8.8.8.8</span> size=<span class="string">64</span></div>
+        <div class="code-line"><span class="keyword">/tool traceroute</span> address=<span class="string">8.8.8.8</span> size=<span class="string">1500</span></div>
+        <div class="code-line comment"># Traceroute dari interface tertentu</div>
+        <div class="code-line"><span class="keyword">/tool traceroute</span> address=<span class="string">8.8.8.8</span> interface=<span class="string">ether1</span></div>
+        <div class="code-line comment"># Menyimpan hasil traceroute ke file</div>
+        <div class="code-line"><span class="keyword">/tool traceroute</span> address=<span class="string">8.8.8.8</span> count=<span class="string">2</span> | save trace_result.txt</div>
+    </div>
+
+    <div class="conclusion-box">
+        <p>Dari berbagai sumber dapat disimpulkan bahwa Traceroute adalah alat yang sangat powerful untuk menganalisis jalur jaringan dan mengidentifikasi masalah performa. Dengan memahami bagaimana membaca dan menginterpretasikan hasil traceroute, administrator jaringan dapat dengan cepat mengisolasi masalah konektivitas, mengidentifikasi bottleneck, dan memverifikasi bahwa traffic berjalan melalui jalur yang diharapkan.</p>
+    </div>
+</div>
+
     <!-- Bibliography -->
     <div class="bibliography">
         <h3>DAFTAR PUSTAKA</h3>
